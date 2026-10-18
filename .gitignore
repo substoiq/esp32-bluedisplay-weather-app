@@ -1,0 +1,12 @@
+# ESP-IDF build-uitvoer en gegenereerde bestanden
+build/
+managed_components/
+sdkconfig
+sdkconfig.old
+
+# Geheimen (voorbeeld staat in main/credentials.example.h)
+main/credentials.h
+
+# macOS en editor
+.DS_Store
+.vscode/
