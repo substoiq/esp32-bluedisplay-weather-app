@@ -17,6 +17,7 @@
 #include "wifi.h"
 #include "weather.h"
 #include "ui.h"
+#include "battery.h"
 
 static const char *TAG = "main";
 static TaskHandle_t weather_task_handle;
@@ -80,6 +81,7 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     display_init();
+    battery_init();                          // vóór ui_create: die meet meteen de accu
 
     if (display_lock(-1)) {
         ui_create(on_screen_tap);
