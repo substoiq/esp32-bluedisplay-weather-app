@@ -74,7 +74,8 @@ probeer opnieuw. Druk na het flashen nog één keer op RESET.
 ```
 app_main()                       main.c
  ├─ display_init()               display_port.c  scherm, touch, LVGL-taak
- ├─ ui_create()                  ui.c            scherm opbouwen
+ ├─ battery_init()               battery.c       ADC voor de accuspanning
+ ├─ ui_create()                  ui.c            scherm opbouwen (+ accu-timer, elke 30 s)
  ├─ wifi_start()                 wifi.c          verbinden op de achtergrond
  └─ weather_task (eigen taak)    main.c
       lus: wacht op Wi-Fi → weather_fetch() → ui_update() → 10 min wachten
@@ -91,6 +92,7 @@ worden, daarom staat elke UI-aanroep vanuit de weer-taak tussen
 | `main/credentials.h` | Wi-Fi, API-key, locatie, verversingstijd | **Ja** |
 | `main/ui.c` | Het scherm: indeling, kleuren, teksten | Naar smaak |
 | `main/weather.c` | API-aanroep en JSON uitpakken | Als je meer data wilt |
+| `main/battery.c` | Accuspanning meten en omrekenen naar % | Zelden |
 | `main/wifi.c` | Wi-Fi-verbinding | Nee |
 | `main/main.c` | Opstarten en de weer-taak | Nee |
 | `main/display_port.c` | Scherm-/touchdriver (uit Waveshare-voorbeeld) | Nee |
@@ -106,6 +108,21 @@ worden, daarom staat elke UI-aanroep vanuit de weer-taak tussen
 - **Andere lettergrootte**: alleen fonts die in `sdkconfig.defaults` aanstaan
   (12, 14, 16, 20, 48) zijn beschikbaar. Voeg je er een toe, verwijder dan het
   bestand `sdkconfig` zodat de instellingen opnieuw worden ingelezen.
+
+## Accu-indicator
+
+Rechts naast het OpenWeatherMap-label staat de accustatus: een symbool en een
+percentage. De kleur is groen boven 50 %, geel tot 20 % en daaronder rood.
+
+- **Meting**: de accuspanning gaat via een spanningsdeler (÷3) naar GPIO4
+  (ADC1 kanaal 3). `battery.c` neemt het gemiddelde van 8 metingen en
+  vermenigvuldigt met 3. Instellingen bovenin `main/battery.c`:
+  `BAT_DIVIDER`, `BAT_SAMPLES` en de demping (`ADC_ATTEN_DB_12`).
+- **Percentage**: een tabel in `battery_percent()` zet de spanning om naar een
+  geschatte lading (4,2 V = 100 %, 3,3 V = 0 %). Heeft jouw accu een andere
+  curve, pas dan die tabel aan.
+- **Verversen**: elke 30 seconden, via een LVGL-timer in `ui_create()` in `main/ui.c`.
+- Lukt de meting niet, dan blijft het label leeg.
 
 ## Problemen oplossen
 

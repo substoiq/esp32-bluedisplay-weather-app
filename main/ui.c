@@ -22,6 +22,7 @@
 #include <time.h>
 #include "lvgl.h"
 #include "ui.h"
+#include "battery.h"
 #include "credentials.h"
 
 /* ================= Kleuren =================
@@ -59,6 +60,7 @@
 /* ================= Objecten die we later bijwerken ================= */
 static lv_obj_t *now_title, *temp_label, *minmax_label, *cond_pill, *cond_pill_text;
 static lv_obj_t *status_dot, *status_text;
+static lv_obj_t *bat_label;
 static lv_obj_t *stat_value[4];
 static lv_obj_t *fc_time[FORECAST_COUNT], *fc_temp[FORECAST_COUNT];
 static lv_obj_t *fc_desc[FORECAST_COUNT], *fc_pop[FORECAST_COUNT];
@@ -203,6 +205,30 @@ static int round_temp(float t)
     return r == 0 ? 0 : r; // voorkomt "-0"
 }
 
+/* Accustatus bijwerken. Een lv_timer draait binnen de LVGL-taak, dus hier
+ * is geen display_lock() nodig. */
+static void battery_update(lv_timer_t *timer)
+{
+    int mv = battery_read_mv();
+    if (mv == 0)
+    {
+        lv_label_set_text(bat_label, ""); // meting mislukt: niets tonen
+        return;
+    }
+    int pct = battery_percent(mv);
+
+    const char *symbol = pct > 80   ? LV_SYMBOL_BATTERY_FULL
+                         : pct > 55 ? LV_SYMBOL_BATTERY_3
+                         : pct > 30 ? LV_SYMBOL_BATTERY_2
+                         : pct > 10 ? LV_SYMBOL_BATTERY_1
+                                    : LV_SYMBOL_BATTERY_EMPTY;
+    uint32_t color = pct > 50 ? C_SUCCESS : pct > 20 ? C_ATTENTION
+                                                     : C_DANGER;
+
+    lv_label_set_text_fmt(bat_label, "%s %d%%", symbol, pct);
+    lv_obj_set_style_text_color(bat_label, lv_color_hex(color), 0);
+}
+
 static void screen_clicked(lv_event_t *e)
 {
     if (tap_callback)
@@ -250,6 +276,12 @@ void ui_create(void (*on_tap)(void))
     set_pill(src_pill, src_text, C_FG_MUTED, "OpenWeatherMap");
     lv_obj_set_style_bg_opa(src_pill, LV_OPA_TRANSP, 0); // GitHub "Public"-label: alleen rand
     lv_obj_set_style_margin_left(src_pill, 4, 0);
+
+    // Accustatus, direct rechts van het OpenWeatherMap-label
+    bat_label = make_label(crumb, &lv_font_montserrat_14, C_FG_MUTED, 0, 0, "");
+    lv_obj_set_style_margin_left(bat_label, 14, 0);
+    battery_update(NULL);                         // meteen een eerste meting
+    lv_timer_create(battery_update, 30000, NULL); // en daarna elke 30 seconden
 
     // Rechts: statusbolletje en tekst, zoals een CI-check
     lv_obj_t *status = plain_obj(bar);
