@@ -1,139 +1,142 @@
-# Breda Weer — weerstation voor de Waveshare ESP32-S3-Touch-LCD-3.49 (V2)
+# Breda Weather — weather station for the Waveshare ESP32-S3-Touch-LCD-3.49 (V2)
 
-Haalt elke 10 minuten het actuele weer en de verwachting voor Breda op bij
-OpenWeatherMap en toont die liggend (640 × 172) in de stijl van GitHub.
-Tik op het scherm om meteen te vernieuwen.
+Fetches the current weather and the forecast for Breda from OpenWeatherMap
+every 10 minutes and shows it in landscape (640 × 172) in the style of GitHub.
+Tap the screen to refresh right away.
 
-![Voorbeeld](preview.png)
+![Preview](preview.png)
 
-> Alleen voor **V2** van het bord (opdruk "Rev1.1" op de print).
-> V1 heeft andere pinnen en werkt niet met deze code.
+> Only for **V2** of the board ("Rev1.1" printed on the PCB).
+> V1 has different pins and does not work with this code.
 
-## Wat heb je nodig
+The texts on the screen are in Dutch, for example `Nu` (now), `Verwachting`
+(forecast) and `Bijgewerkt` (updated).
 
-- Het Waveshare-bord (V2) en een **USB-C-kabel die data doet** (niet alleen laden)
-- Een pc met Windows, macOS of Linux
-- [VS Code](https://code.visualstudio.com/) met de extensie **"ESP-IDF"** van Espressif
-- **ESP-IDF v5.5.3** (installeer je via de extensie, zie hieronder)
-- Een gratis OpenWeatherMap-account en API-key
-- Een 2,4 GHz Wi-Fi-netwerk
+## What you need
 
-## 1. Eenmalig: ESP-IDF installeren
+- The Waveshare board (V2) and a **USB-C cable that carries data** (not just charging)
+- A PC with Windows, macOS or Linux
+- [VS Code](https://code.visualstudio.com/) with the **"ESP-IDF"** extension by Espressif
+- **ESP-IDF v5.5.3** (installed through the extension, see below)
+- A free OpenWeatherMap account and API key
+- A 2.4 GHz Wi-Fi network
 
-1. Installeer VS Code en open de Extensions-weergave (Ctrl+Shift+X).
-2. Zoek op **ESP-IDF**, installeer de extensie van Espressif Systems.
-3. De setup-wizard start vanzelf (of: Ctrl+Shift+P → "ESP-IDF: Configure ESP-IDF Extension").
-4. Kies **Express**, selecteer versie **v5.5.3** en klik Install. Dit duurt even
-   (enkele GB download).
-5. Windows: de USB-driver is niet nodig; de ESP32-S3 heeft ingebouwde USB.
+## 1. Once: install ESP-IDF
 
-## 2. API-key en Wi-Fi invullen
+1. Install VS Code and open the Extensions view (Ctrl+Shift+X).
+2. Search for **ESP-IDF** and install the extension by Espressif Systems.
+3. The setup wizard starts by itself (or: Ctrl+Shift+P → "ESP-IDF: Configure ESP-IDF Extension").
+4. Choose **Express**, select version **v5.5.3** and click Install. This takes a while
+   (a download of several GB).
+5. Windows: the USB driver is not needed; the ESP32-S3 has built-in USB.
 
-Maak een account op <https://home.openweathermap.org/users/sign_up> en kopieer
-je key van <https://home.openweathermap.org/api_keys>.
+## 2. Fill in the API key and Wi-Fi
 
-Kopieer **`main/credentials.example.h`** naar **`main/credentials.h`** en vul in:
+Create an account at <https://home.openweathermap.org/users/sign_up> and copy
+your key from <https://home.openweathermap.org/api_keys>.
+
+Copy **`main/credentials.example.h`** to **`main/credentials.h`** and fill in:
 
 ```c
-#define WIFI_SSID       "jouw-wifi-naam"
-#define WIFI_PASSWORD   "jouw-wifi-wachtwoord"
-#define OWM_API_KEY     "plak-hier-je-api-key"
+#define WIFI_SSID       "your-wifi-name"
+#define WIFI_PASSWORD   "your-wifi-password"
+#define OWM_API_KEY     "paste-your-api-key-here"
 ```
 
-Een nieuwe API-key kan tot een paar uur nodig hebben om actief te worden.
-Tot die tijd toont het scherm een rood bolletje met "HTTP 401".
+A new API key can take a few hours to become active.
+Until then the screen shows a red dot with "HTTP 401".
 
-## 3. Bouwen en uploaden
+## 3. Build and upload
 
-1. Open de map `esp32-bluedisplay-weather-app` in VS Code (File → Open Folder).
-2. Sluit het bord aan via USB-C.
-3. Kies onderaan in de blauwe statusbalk:
-   - **Target**: `esp32s3` (kies "ESP32-S3 chip (via builtin USB-JTAG)")
-   - **Poort**: de COM-poort / `/dev/ttyACM0` / `/dev/cu.usbmodem…` van het bord
-   - **Flash-methode**: UART
-4. Klik op het **vlammetje** (Build, Flash and Monitor).
+1. Open the `esp32-bluedisplay-weather-app` folder in VS Code (File → Open Folder).
+2. Connect the board via USB-C.
+3. Choose in the blue status bar at the bottom:
+   - **Target**: `esp32s3` (choose "ESP32-S3 chip (via builtin USB-JTAG)")
+   - **Port**: the board's COM port / `/dev/ttyACM0` / `/dev/cu.usbmodem…`
+   - **Flash method**: UART
+4. Click the **flame icon** (Build, Flash and Monitor).
 
-De eerste build duurt een paar minuten: LVGL en de schermdrivers worden dan
-automatisch gedownload naar `managed_components/`. Daarna gaat het veel sneller.
+The first build takes a few minutes: LVGL and the display drivers are then
+downloaded automatically to `managed_components/`. After that it is much faster.
 
-Liever de commandline? Open een "ESP-IDF Terminal" (Ctrl+Shift+P) en typ:
+Prefer the command line? Open an "ESP-IDF Terminal" (Ctrl+Shift+P) and type:
 
 ```
 idf.py set-target esp32s3
 idf.py build flash monitor
 ```
 
-Stoppen met de monitor: **Ctrl+]**.
+Stop the monitor with **Ctrl+]**.
 
-**Uploaden lukt niet?** Zet het bord handmatig in downloadmodus: houd de
-**BOOT**-knop (achterkant) ingedrukt, druk kort op **RESET**, laat BOOT los en
-probeer opnieuw. Druk na het flashen nog één keer op RESET.
+**Upload not working?** Put the board into download mode manually: hold the
+**BOOT** button (on the back), briefly press **RESET**, release BOOT and
+try again. Press RESET once more after flashing.
 
-## Hoe het programma werkt
+## How the program works
 
 ```
 app_main()                       main.c
- ├─ display_init()               display_port.c  scherm, touch, LVGL-taak
- ├─ battery_init()               battery.c       ADC voor de accuspanning
- ├─ ui_create()                  ui.c            scherm opbouwen (+ accu-timer, elke 30 s)
- ├─ wifi_start()                 wifi.c          verbinden op de achtergrond
- └─ weather_task (eigen taak)    main.c
-      lus: wacht op Wi-Fi → weather_fetch() → ui_update() → 10 min wachten
-                                 weather.c       HTTPS + JSON uitpakken
+ ├─ display_init()               display_port.c  display, touch, LVGL task
+ ├─ battery_init()               battery.c       ADC for the battery voltage
+ ├─ ui_create()                  ui.c            build the screen (+ battery timer, every 30 s)
+ ├─ wifi_start()                 wifi.c          connect in the background
+ └─ weather_task (own task)      main.c
+      loop: wait for Wi-Fi → weather_fetch() → ui_update() → wait 10 min
+                                 weather.c       HTTPS + parse JSON
 ```
 
-Er lopen twee taken tegelijk: de **LVGL-taak** (tekent het scherm) en de
-**weer-taak** (haalt data op). LVGL mag maar door één taak tegelijk gebruikt
-worden, daarom staat elke UI-aanroep vanuit de weer-taak tussen
-`display_lock()` en `display_unlock()`.
+Two tasks run at the same time: the **LVGL task** (draws the screen) and the
+**weather task** (fetches the data). LVGL may only be used by one task at a
+time, which is why every UI call from the weather task sits between
+`display_lock()` and `display_unlock()`.
 
-| Bestand | Wat zit erin | Aanpassen? |
+| File | What's in it | Change it? |
 |---|---|---|
-| `main/credentials.h` | Wi-Fi, API-key, locatie, verversingstijd | **Ja** |
-| `main/ui.c` | Het scherm: indeling, kleuren, teksten | Naar smaak |
-| `main/weather.c` | API-aanroep en JSON uitpakken | Als je meer data wilt |
-| `main/battery.c` | Accuspanning meten en omrekenen naar % | Zelden |
-| `main/wifi.c` | Wi-Fi-verbinding | Nee |
-| `main/main.c` | Opstarten en de weer-taak | Nee |
-| `main/display_port.c` | Scherm-/touchdriver (uit Waveshare-voorbeeld) | Nee |
-| `main/user_config.h` | Pinnen van het bord (Waveshare V2) | Nee |
-| `components/` | Waveshare-hulpcode voor I2C en backlight | Nee |
-| `sdkconfig.defaults` | Instellingen (PSRAM, fonts, HTTPS) | Zelden |
+| `main/credentials.h` | Wi-Fi, API key, location, refresh time | **Yes** |
+| `main/ui.c` | The screen: layout, colours, texts | To taste |
+| `main/weather.c` | API call and JSON parsing | If you want more data |
+| `main/battery.c` | Measuring the battery voltage and converting it to % | Rarely |
+| `main/wifi.c` | Wi-Fi connection | No |
+| `main/main.c` | Start-up and the weather task | No |
+| `main/display_port.c` | Display/touch driver (from the Waveshare example) | No |
+| `main/user_config.h` | Board pins (Waveshare V2) | No |
+| `components/` | Waveshare helper code for I2C and backlight | No |
+| `sdkconfig.defaults` | Settings (PSRAM, fonts, HTTPS) | Rarely |
 
-## Aanpassen
+## Customising
 
-- **Licht thema**: zet in `main/ui.c` `#define UI_DARK_THEME` op `0`.
-- **Scherm op z'n kop**: zet in `main/display_port.h` de rotatie op `LV_DISPLAY_ROTATION_270`.
-- **Andere stad**: pas `WEATHER_CITY`, `WEATHER_LAT` en `WEATHER_LON` aan in `credentials.h`.
-- **Andere lettergrootte**: alleen fonts die in `sdkconfig.defaults` aanstaan
-  (12, 14, 16, 20, 48) zijn beschikbaar. Voeg je er een toe, verwijder dan het
-  bestand `sdkconfig` zodat de instellingen opnieuw worden ingelezen.
+- **Light theme**: in `main/ui.c`, set `#define UI_DARK_THEME` to `0`.
+- **Screen upside down**: in `main/display_port.h`, set the rotation to `LV_DISPLAY_ROTATION_270`.
+- **Another city**: change `WEATHER_CITY`, `WEATHER_LAT` and `WEATHER_LON` in `credentials.h`.
+- **Another font size**: only fonts enabled in `sdkconfig.defaults`
+  (12, 14, 16, 20, 48) are available. If you add one, delete the
+  `sdkconfig` file so the settings are read again.
 
-## Accu-indicator
+## Battery indicator
 
-Rechts naast het OpenWeatherMap-label staat de accustatus: een symbool en een
-percentage. De kleur is groen boven 50 %, geel tot 20 % en daaronder rood.
+To the right of the OpenWeatherMap label is the battery status: a symbol and a
+percentage. The colour is green above 50 %, yellow down to 20 % and red below that.
 
-- **Meting**: de accuspanning gaat via een spanningsdeler (÷3) naar GPIO4
-  (ADC1 kanaal 3). `battery.c` neemt het gemiddelde van 8 metingen en
-  vermenigvuldigt met 3. Instellingen bovenin `main/battery.c`:
-  `BAT_DIVIDER`, `BAT_SAMPLES` en de demping (`ADC_ATTEN_DB_12`).
-- **Percentage**: een tabel in `battery_percent()` zet de spanning om naar een
-  geschatte lading (4,2 V = 100 %, 3,3 V = 0 %). Heeft jouw accu een andere
-  curve, pas dan die tabel aan.
-- **Verversen**: elke 30 seconden, via een LVGL-timer in `ui_create()` in `main/ui.c`.
-- Lukt de meting niet, dan blijft het label leeg.
+- **Measurement**: the battery voltage goes through a voltage divider (÷3) to GPIO4
+  (ADC1 channel 3). `battery.c` averages 8 readings and
+  multiplies by 3. Settings at the top of `main/battery.c`:
+  `BAT_DIVIDER`, `BAT_SAMPLES` and the attenuation (`ADC_ATTEN_DB_12`).
+- **Percentage**: a table in `battery_percent()` converts the voltage into an
+  estimated charge (4.2 V = 100 %, 3.3 V = 0 %). If your battery has a different
+  curve, adjust that table.
+- **Refresh**: every 30 seconds, through an LVGL timer in `ui_create()` in `main/ui.c`.
+- If the measurement fails, the label stays empty.
 
-## Problemen oplossen
+## Troubleshooting
 
-| Op het scherm / in de monitor | Oorzaak |
+| On the screen / in the monitor | Cause |
 |---|---|
-| Zwart scherm | Verkeerde hardwareversie (V1?), of de upload is niet gelukt |
-| "Geen Wi-Fi: controleer credentials.h" | Verkeerde SSID/wachtwoord, of 5 GHz-netwerk |
-| "HTTP 401: API-key ongeldig..." | Key verkeerd overgenomen, of nog niet actief |
-| "Geen verbinding met API" | Internet of DNS werkt niet via dit netwerk |
-| Tekst staat op z'n kop | Rotatie op 270 zetten (zie boven) |
+| Black screen | Wrong hardware version (V1?), or the upload did not succeed |
+| "Geen Wi-Fi: controleer credentials.h" (no Wi-Fi: check credentials.h) | Wrong SSID/password, or a 5 GHz network |
+| "HTTP 401: API-key ongeldig..." (API key invalid) | Key copied incorrectly, or not active yet |
+| "Geen verbinding met API" (no connection to the API) | Internet or DNS does not work through this network |
+| Text is upside down | Set the rotation to 270 (see above) |
 
-In de monitor (onderaan in VS Code) zie je logregels zoals
-`I (5123) wifi: Verbonden, IP-adres: 192.168.1.42` die precies laten zien waar
-het misgaat.
+In the monitor (at the bottom of VS Code) you see log lines such as
+`I (5123) wifi: Verbonden, IP-adres: 192.168.1.42` ("connected, IP address") that show exactly
+where things go wrong.
